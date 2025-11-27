@@ -1,0 +1,64 @@
+/**
+ * CSS files with the .module.css suffix will be treated as CSS modules
+ * and scoped locally.
+ */
+
+.heroBanner {
+  padding: 5rem 0 4rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.heroBadge {
+  display: inline-block;
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  color: #e8f5ff;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+}
+
+.heroSubtitle {
+  max-width: 720px;
+  margin: 0.75rem auto 0;
+  color: rgba(232, 245, 255, 0.9);
+}
+
+.heroMeta {
+  margin-top: 1.5rem;
+  color: rgba(232, 245, 255, 0.8);
+  font-size: 0.95rem;
+}
+
+.cta {
+  border-radius: 12px;
+  font-weight: 700;
+}
+
+.ctaGhost {
+  border-radius: 12px;
+  font-weight: 700;
+  border-color: rgba(232, 245, 255, 0.55);
+  color: #e8f5ff;
+}
+
+.buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+@media screen and (max-width: 996px) {
+  .heroBanner {
+    padding: 2rem;
+  }
+  .heroSubtitle {
+    margin-top: 1rem;
+  }
+}
