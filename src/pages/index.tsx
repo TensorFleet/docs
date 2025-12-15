@@ -1,4 +1,4 @@
-import type {ReactNode} from 'react';
+import type { ReactNode } from 'react';
 import clsx from 'clsx';
 import Link from '@docusaurus/Link';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
@@ -9,20 +9,20 @@ import Heading from '@theme/Heading';
 import styles from './index.module.css';
 
 function HomepageHeader() {
-  const {siteConfig} = useDocusaurusContext();
+  const { siteConfig } = useDocusaurusContext();
   return (
     <header className={clsx('hero hero--primary', styles.heroBanner)}>
       <div className="container">
         <div className={styles.heroBadge}>Robotics + Drone Development</div>
         <Heading as="h1" className="hero__title">
-          Tensorfleet developer hub
+          Tensorfleet Developer Hub
         </Heading>
         <p className={clsx('hero__subtitle', styles.heroSubtitle)}>
           {siteConfig.tagline}
         </p>
         <div className={styles.buttons}>
           <Link
-            className={clsx('button button--secondary button--lg', styles.cta)}
+            className={clsx('button button--primary button--lg', styles.cta)}
             to="/docs/vscode-extension">
             Launch the VS Code cockpit
           </Link>
@@ -41,7 +41,7 @@ function HomepageHeader() {
 }
 
 export default function Home(): ReactNode {
-  const {siteConfig} = useDocusaurusContext();
+  const { siteConfig } = useDocusaurusContext();
   return (
     <Layout
       title={siteConfig.title}
