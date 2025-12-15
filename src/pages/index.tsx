@@ -15,7 +15,7 @@ function HomepageHeader() {
       <div className="container">
         <div className={styles.heroBadge}>Robotics + Drone Development</div>
         <Heading as="h1" className="hero__title">
-          Tensorfleet Developer Hub
+          TensorFleet Developer Hub
         </Heading>
         <p className={clsx('hero__subtitle', styles.heroSubtitle)}>
           {siteConfig.tagline}
@@ -45,7 +45,7 @@ export default function Home(): ReactNode {
   return (
     <Layout
       title={siteConfig.title}
-      description="Tensorfleet documentation for the VS Code cockpit, Easy Drone SDK, and production-ready examples.">
+      description="TensorFleet documentation for the VS Code cockpit, Easy Drone SDK, and production-ready examples.">
       <HomepageHeader />
       <main>
         <HomepageFeatures />

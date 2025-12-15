@@ -136,3 +136,8 @@
       transparent 100%);
   color: #fff;
 }
+
+/* Force logo height to respect the config */
+.navbar__logo {
+  height: 20px;
+}
