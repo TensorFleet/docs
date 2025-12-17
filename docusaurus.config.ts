@@ -5,9 +5,9 @@ import type * as Preset from '@docusaurus/preset-classic';
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
 const config: Config = {
-  title: 'TensorFleet Docs',
-  tagline: 'Build, simulate, and operate robots faster.',
-  favicon: 'img/favicon.ico',
+  title: 'Tensorfleet Docs',
+  tagline: 'Documentation for TensorFleet fleet APIs, mission graphs, and ROS/PX4 adapters to go from single drone to production fleets.',
+  favicon: 'img/favico.png',
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
   future: {
@@ -15,7 +15,7 @@ const config: Config = {
   },
 
   // Set the production url of your site here
-  url: 'https://tensorfleet.net',
+  url: 'https://docs.tensorfleet.net',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
   baseUrl: '/',
@@ -46,13 +46,17 @@ const config: Config = {
         theme: {
           customCss: './src/css/custom.css',
         },
+        gtag: {
+          trackingID: 'G-QCZ1J8QSLK',
+          anonymizeIP: true,
+        },
       } satisfies Preset.Options,
     ],
   ],
 
   themeConfig: {
     // Replace with your project's social card
-    image: 'img/docusaurus-social-card.jpg',
+    image: 'img/og.png',
     colorMode: {
       respectPrefersColorScheme: true,
     },

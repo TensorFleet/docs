@@ -45,7 +45,7 @@ export default function Home(): ReactNode {
   return (
     <Layout
       title={siteConfig.title}
-      description="TensorFleet documentation for the VS Code cockpit, Easy Drone SDK, and production-ready examples.">
+      description={siteConfig.tagline}>
       <HomepageHeader />
       <main>
         <HomepageFeatures />
