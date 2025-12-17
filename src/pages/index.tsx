@@ -15,14 +15,14 @@ function HomepageHeader() {
       <div className="container">
         <div className={styles.heroBadge}>Robotics + Drone Development</div>
         <Heading as="h1" className="hero__title">
-          Tensorfleet developer hub
+          TensorFleet Developer Hub
         </Heading>
         <p className={clsx('hero__subtitle', styles.heroSubtitle)}>
           {siteConfig.tagline}
         </p>
         <div className={styles.buttons}>
           <Link
-            className={clsx('button button--secondary button--lg', styles.cta)}
+            className={clsx('button button--primary button--lg', styles.cta)}
             to="/docs/vscode-extension">
             Launch the VS Code cockpit
           </Link>
