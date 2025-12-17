@@ -84,7 +84,8 @@ const config: Config = {
         },
         {
           href: 'https://github.com/TensorFleet',
-          label: 'GitHub',
+          className: 'header-github-link',
+          'aria-label': 'GitHub repository',
           position: 'right',
         },
       ],

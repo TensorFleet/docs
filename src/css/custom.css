@@ -141,3 +141,31 @@
 .navbar__logo {
   height: 20px;
 }
+
+/* GitHub Header Link */
+.header-github-link {
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+}
+
+.header-github-link::before {
+  content: '';
+  display: block;
+  width: 24px;
+  height: 24px;
+  background-color: var(--ifm-navbar-link-color);
+  mask-image: url('/img/github-mark.svg');
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask-image: url('/img/github-mark.svg');
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  transition: background-color var(--ifm-transition-fast);
+}
+
+.header-github-link:hover::before {
+  background-color: var(--ifm-navbar-link-hover-color);
+}
