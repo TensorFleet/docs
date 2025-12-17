@@ -1,12 +1,12 @@
 ---
 sidebar_position: 1
 title: Welcome
-description: What Tensorfleet offers and how to get flying fast.
+description: What TensorFleet offers and how to get flying fast.
 ---
 
-# Tensorfleet Docs
+# TensorFleet Docs
 
-Tensorfleet makes it easier to build, simulate, and operate robots and drones. This site packages the essentials for getting started with our toolchain:
+TensorFleet makes it easier to build, simulate, and operate robots and drones. This site packages the essentials for getting started with our toolchain:
 
 - **VS Code Extension**: A full cockpit for PX4, ROS 2, Gazebo, and mission tooling.
 - **Easy Drone SDK**: Pure-Python Gazebo transport with ZeroMQ or Zenoh backends.
@@ -20,7 +20,7 @@ Tensorfleet makes it easier to build, simulate, and operate robots and drones. T
 
 ## Quick links
 
-- Start in the editor: [Tensorfleet VS Code Extension](vscode-extension.md)
+- Start in the editor: [TensorFleet VS Code Extension](vscode-extension.md)
 - Run a working sample: [example-easy-drone-python](example-easy-drone-python.md)
 - Build with the SDK: [easy-drone library](easy-drone-library.md)
 

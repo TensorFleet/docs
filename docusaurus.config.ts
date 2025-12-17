@@ -1,11 +1,11 @@
-import {themes as prismThemes} from 'prism-react-renderer';
-import type {Config} from '@docusaurus/types';
+import { themes as prismThemes } from 'prism-react-renderer';
+import type { Config } from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
 const config: Config = {
-  title: 'Tensorfleet Docs',
+  title: 'TensorFleet Docs',
   tagline: 'Build, simulate, and operate robots faster.',
   favicon: 'img/favicon.ico',
 
@@ -57,10 +57,12 @@ const config: Config = {
       respectPrefersColorScheme: true,
     },
     navbar: {
-      title: 'Tensorfleet',
+      title: '',
       logo: {
-        alt: 'Tensorfleet Logo',
-        src: 'img/logo.svg',
+        alt: 'TensorFleet Logo',
+        src: 'img/logoblack.png',
+        srcDark: 'img/logowhite.png',
+        height: '24px',
       },
       items: [
         {
@@ -82,13 +84,13 @@ const config: Config = {
         },
         {
           href: 'https://github.com/TensorFleet',
-          label: 'GitHub',
+          className: 'header-github-link',
+          'aria-label': 'GitHub repository',
           position: 'right',
         },
       ],
     },
     footer: {
-      style: 'dark',
       links: [
         {
           title: 'Docs',
@@ -115,7 +117,7 @@ const config: Config = {
           title: 'Resources',
           items: [
             {
-              label: 'Tensorfleet',
+              label: 'TensorFleet',
               href: 'https://tensorfleet.net',
             },
             {
@@ -142,7 +144,7 @@ const config: Config = {
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} Tensorfleet. Built with Docusaurus.`,
+      copyright: `Copyright © ${new Date().getFullYear()} TensorFleet. Built with Docusaurus.`,
     },
     prism: {
       theme: prismThemes.github,

@@ -1,42 +1,171 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
+/* Remove Space Grotesk import to match Landing Page default sans */
 
+/* Light Mode (Default) - White background, Green accents */
 :root {
-  --ifm-color-primary: #0f9bd7;
-  --ifm-color-primary-dark: #0d8cc2;
-  --ifm-color-primary-darker: #0c80b2;
-  --ifm-color-primary-darkest: #096992;
-  --ifm-color-primary-light: #2aa8db;
-  --ifm-color-primary-lighter: #4ab6e0;
-  --ifm-color-primary-lightest: #7ac9e7;
+  /* Emerald 500 primaries */
+  --ifm-color-primary: #10b981;
+  --ifm-color-primary-dark: #059669;
+  --ifm-color-primary-darker: #047857;
+  --ifm-color-primary-darkest: #064e3b;
+  --ifm-color-primary-light: #34d399;
+  --ifm-color-primary-lighter: #6ee7b7;
+  --ifm-color-primary-lightest: #a7f3d0;
+
   --ifm-code-font-size: 95%;
-  --ifm-font-family-base: 'Space Grotesk', 'Segoe UI', system-ui, -apple-system,
-    sans-serif;
-  --ifm-heading-font-family: 'Space Grotesk', 'Segoe UI', system-ui,
-    -apple-system, sans-serif;
-  --docusaurus-highlighted-code-line-bg: rgba(15, 155, 215, 0.12);
-  --gradient-hero: radial-gradient(80% 120% at 20% 20%, #0f9bd7 0, #051828 45%);
+
+  /* Standard modern sans-serif stack */
+  --ifm-font-family-base: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  --ifm-heading-font-family: var(--ifm-font-family-base);
+
+  /* Light Theme Specifics */
+  --ifm-background-color: #ffffff;
+  --ifm-background-surface-color: #f3f4f6;
+  /* Gray-100 for subtle contrast areas */
+  --ifm-color-content: #1f2937;
+  /* Gray-800 text */
+  --ifm-navbar-background-color: #ffffff;
+  --ifm-footer-background-color: #ffffff;
+  /* Match page background */
+
+  --docusaurus-highlighted-code-line-bg: rgba(16, 185, 129, 0.1);
+
+  /* HOMEPAGE HERO VARIABLES (Light Mode) */
+  --home-badge-bg: transparent;
+  /* Top user request: transparent pill */
+  --home-badge-text: #1f2937;
+  --home-badge-border: rgba(0, 0, 0, 0.1);
+  --home-subtitle-color: #4b5563;
+  /* Gray-600 */
+  --home-meta-color: #6b7280;
+  /* Gray-500 */
+  --home-ghost-border: #d1d5db;
+  /* Gray-300 */
+  --home-ghost-text: #374151;
+  /* Gray-700 */
+  --home-ghost-hover-bg: #f3f4f6;
 }
 
+/* Dark Mode - TensorFleet "Synthwave" Dark style */
 [data-theme='dark'] {
-  --ifm-color-primary: #4ab6e0;
-  --ifm-color-primary-dark: #2aa8db;
-  --ifm-color-primary-darker: #1e9ed6;
-  --ifm-color-primary-darkest: #0f88bd;
-  --ifm-color-primary-light: #69c6e6;
-  --ifm-color-primary-lighter: #82d1eb;
-  --ifm-color-primary-lightest: #a9e0f1;
-  --docusaurus-highlighted-code-line-bg: rgba(74, 182, 224, 0.18);
+  /* Keep Emerald primaries */
+  --ifm-color-primary: #10b981;
+  --ifm-color-primary-dark: #059669;
+  --ifm-color-primary-darker: #047857;
+  --ifm-color-primary-darkest: #064e3b;
+  --ifm-color-primary-light: #34d399;
+  --ifm-color-primary-lighter: #6ee7b7;
+  --ifm-color-primary-lightest: #a7f3d0;
+
+  --docusaurus-highlighted-code-line-bg: rgba(16, 185, 129, 0.1);
+
+  /* Deep Dark Backgrounds from Landing Page */
+  --ifm-background-color: #0a0a0a;
+  --ifm-background-surface-color: #111115;
+  --ifm-color-content: #f3f4f6;
+  /* Gray-100 text */
+
+  --ifm-navbar-background-color: #0a0a0a;
+  --ifm-footer-background-color: #0a0a0a;
+
+  /* Border colors for separation in dark mode */
+  --ifm-toc-border-color: #27272A;
+  --ifm-color-emphasis-200: #27272A;
+  /* Borders */
+
+  /* HOMEPAGE HERO VARIABLES (Dark Mode) */
+  --home-badge-bg: transparent;
+  --home-badge-text: #fff;
+  --home-badge-border: #fff;
+  --home-subtitle-color: rgba(255, 255, 255, 0.8);
+  --home-meta-color: rgba(255, 255, 255, 0.6);
+  --home-ghost-border: rgba(255, 255, 255, 0.3);
+  --home-ghost-text: #fff;
+  --home-ghost-hover-bg: rgba(255, 255, 255, 0.05);
+}
+
+/* Button styles */
+.button {
+  border-radius: 0.375rem;
+  /* rounded-md */
 }
 
 .button.button--primary {
-  box-shadow: 0 12px 30px rgba(15, 155, 215, 0.25);
+  color: #fff;
+  border-color: var(--ifm-color-primary);
 }
 
+/* Navbar adjustments */
+.navbar {
+  box-shadow: none;
+  border-bottom: 1px solid #e5e7eb;
+  /* Light mode border */
+}
+
+[data-theme='dark'] .navbar {
+  border-bottom: 1px solid #27272A;
+  /* Dark mode border */
+}
+
+/* Footer adjustments */
+.footer {
+  border-top: 1px solid #e5e7eb;
+}
+
+[data-theme='dark'] .footer {
+  border-top: 1px solid #27272A;
+}
+
+/* Hero adjustments to handle both modes nicely */
 .hero--primary {
-  background-image: var(--gradient-hero);
-  color: #e8f5ff;
+  background-color: #ffffff;
+  background-image: radial-gradient(120% 81% at 50% 22%,
+      rgba(10, 143, 121, 0.15),
+      /* Reduced opacity for light mode to keep it subtle/clean */
+      rgba(10, 143, 121, 0.08) 34%,
+      rgba(10, 143, 121, 0.02) 52%,
+      transparent 100%);
+  color: #111827;
 }
 
-.hero .button {
-  border-radius: 12px;
+[data-theme='dark'] .hero--primary {
+  background-color: #0a0a0a;
+  background-image: radial-gradient(120% 81% at 50% 22%,
+      rgba(10, 143, 121, 0.48),
+      rgba(10, 143, 121, 0.22) 34%,
+      rgba(10, 143, 121, 0.1) 52%,
+      transparent 100%);
+  color: #fff;
+}
+
+/* Force logo height to respect the config */
+.navbar__logo {
+  height: 20px;
+}
+
+/* GitHub Header Link */
+.header-github-link {
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+}
+
+.header-github-link::before {
+  content: '';
+  display: block;
+  width: 24px;
+  height: 24px;
+  background-color: var(--ifm-navbar-link-color);
+  mask-image: url('/img/github-mark.svg');
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask-image: url('/img/github-mark.svg');
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  transition: background-color var(--ifm-transition-fast);
+}
+
+.header-github-link:hover::before {
+  background-color: var(--ifm-navbar-link-hover-color);
 }

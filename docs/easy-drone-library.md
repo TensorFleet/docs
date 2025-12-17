@@ -41,7 +41,7 @@ node = Node()
 # Publisher
 pub = node.advertise("/chatter", StringMsg)
 msg = StringMsg()
-msg.data = "Hello Tensorfleet"
+msg.data = "Hello TensorFleet"
 pub.publish(msg)
 
 # Subscriber
