@@ -34,7 +34,7 @@ This directory contains step-by-step tutorials for learning drone programming wi
 
 ## Navigation
 
-- **Previous**: [Main README](../README.md)
+- **Previous**: [Main README](README.md)
 - **Next**: [Preparation Tutorial](00_preparation.md)
 
 ---
