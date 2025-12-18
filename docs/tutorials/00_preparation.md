@@ -1,3 +1,9 @@
+---
+id: 00_preparation
+title: "Tutorial 00: Preparation & Setup"
+sidebar_label: "00: Preparation & Setup"
+---
+
 # Tutorial 00: Preparation & Setup
 
 ## Overview

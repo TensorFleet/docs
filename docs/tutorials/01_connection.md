@@ -1,3 +1,9 @@
+---
+id: 01_connection
+title: "Tutorial 01: Connection & State Monitoring"
+sidebar_label: "01: Connection & State Monitoring"
+---
+
 # Tutorial 01: Connection & State Monitoring
 
 ## Overview

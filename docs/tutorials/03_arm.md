@@ -1,3 +1,9 @@
+---
+id: 03_arm
+title: "Tutorial 03: Arm / Disarm the Drone"
+sidebar_label: "03: Arm / Disarm"
+---
+
 # Tutorial 03: Arm / Disarm the Drone
 
 ## Overview

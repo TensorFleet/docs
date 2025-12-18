@@ -1,3 +1,9 @@
+---
+id: 02_telemetry
+title: "Tutorial 02: Comprehensive Telemetry Monitoring"
+sidebar_label: "02: Telemetry Monitoring"
+---
+
 # Tutorial 02: Comprehensive Telemetry Monitoring
 
 ## Overview
