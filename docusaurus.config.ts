@@ -5,7 +5,7 @@ import type * as Preset from '@docusaurus/preset-classic';
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
 const config: Config = {
-  title: 'Tensorfleet Docs',
+  title: 'TensorFleet Docs',
   tagline: 'Documentation for TensorFleet fleet APIs, mission graphs, and ROS/PX4 adapters to go from single drone to production fleets.',
   favicon: 'img/favico.png',
 
