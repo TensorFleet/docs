@@ -4,17 +4,20 @@ title: "Tutorial 02: Comprehensive Telemetry Monitoring"
 sidebar_label: "02: Telemetry Monitoring"
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Tutorial 02: Comprehensive Telemetry Monitoring
 
 ## Overview
 
-This tutorial demonstrates advanced telemetry data collection and processing using MAVROS ROS topics. It showcases both raw ROS topic subscriptions for fine-grained control and the managed DroneStateModel for simplified, aggregated state handling. You'll learn about key telemetry sources, data formats, and real-time monitoring techniques essential for drone applications.
+This tutorial demonstrates advanced telemetry data collection and processing using MAVROS ROS topics. It showcases both raw ROS topic subscriptions for fine-grained control and the managed `DroneStateModel` for simplified, aggregated state handling. You'll learn about key telemetry sources, data formats, and real-time monitoring techniques essential for drone applications.
 
 ## Learning Objectives
 
 - Subscribe to multiple MAVROS ROS topics for comprehensive telemetry data
 - Process raw ROS messages from state, position, GPS, altitude, and battery topics
-- Utilize DroneStateModel for unified, managed telemetry aggregation
+- Utilize `DroneStateModel` for unified, managed telemetry aggregation
 - Understand MAVROS data structures and update frequencies
 - Compare raw vs. managed telemetry processing approaches
 - Monitor critical flight parameters in real-time
@@ -24,7 +27,6 @@ This tutorial demonstrates advanced telemetry data collection and processing usi
 - **MAVROS Telemetry**: MAVLink protocol extension providing drone sensor and state data via ROS
 - **ROS Topics**: Publish-subscribe messaging system for real-time data distribution
 - **Data Aggregation**: Combining multiple raw topics into a coherent state representation
-- **Update Frequencies**: Different sensors publish at varying rates (GPS: 1-10Hz, IMU: 50-400Hz)
 - **Coordinate Systems**: Understanding local (ENU) vs global (GPS) positioning
 
 ## Prerequisites
@@ -35,19 +37,34 @@ This tutorial demonstrates advanced telemetry data collection and processing usi
 
 ## Running the Tutorial
 
-After understanding basic connection and state monitoring from Tutorial 01, the telemetry tutorial builds upon this foundation by demonstrating comprehensive data collection from the drone's sensors and systems.
+After understanding basic connection and state monitoring from [Tutorial 01](01_connection.md), the telemetry tutorial builds upon this foundation by demonstrating comprehensive data collection from the drone's sensors and systems.
 
-To run the telemetry tutorial, use the following bun command:
+To run the telemetry tutorial example script, use the following bun command:
+
+<Tabs groupId="language">
+<TabItem value="js" label="JavaScript" default>
 
 ```bash
 bun run src/tutorials/02_telemetry.js
 ```
+
+</TabItem>
+<TabItem value="python" label="Python">
+
+```bash
+# Coming soon...
+```
+
+</TabItem>
+</Tabs>
 
 This will start the telemetry monitoring script, which connects to multiple MAVROS topics and begins collecting comprehensive flight data.
 
 ## Expected Output Example
 
 When running the tutorial, you should see output similar to the following (this is the result of successful telemetry collection and displays both raw topic data and managed state model data):
+
+<div style={{maxHeight: '400px', overflowY: 'auto'}}>
 
 ```
 [INFO] Connected to ROS Bridge - monitoring comprehensive telemetry...
@@ -112,10 +129,11 @@ Battery:
   Voltage:    16.20 V
   Percentage: 1%
 ```
+</div>
 
 ## How It Works
 
-The tutorial demonstrates comprehensive telemetry collection through multiple approaches:
+In this example we cover two approaches to collect data:
 
 1. **Raw MAVROS Topic Subscriptions**: Direct subscriptions to individual ROS topics provide fine-grained access to specific sensor data. This approach gives you complete control over data processing and allows for custom filtering, transformation, or analysis of individual data streams.
 
@@ -132,25 +150,17 @@ The tutorial demonstrates comprehensive telemetry collection through multiple ap
 
 ## Understanding Coordinate Systems
 
-The tutorial demonstrates two important coordinate systems used in drone telemetry:
+Please note that the local Cartesian coordinate frame is not Z-up. In this frame, the Z axis points downward.
 
-- **ENU (East-North-Up)**: Local coordinate system where X points East, Y points North, and Z points Up. Positions are relative to the home/takeoff location.
-- **GPS/WGS84**: Global coordinate system using latitude, longitude, and altitude above mean sea level.
-
-## Data Update Frequencies
-
-Different sensors and systems publish data at varying frequencies:
-
-- GPS data: Typically 1-10 Hz
-- IMU/Position: 50-400 Hz
-- Battery: 1 Hz
-- Vehicle state: 1-10 Hz depending on changes
-
-The managed state model handles these different update rates and provides a unified view of the current drone state.
+- **NED (North-East-Down)**: A local coordinate system where X points North, Y points East, and Z points Down. Positions are relative to the local origin (e.g., home/takeoff position).
+- **GPS/WGS84**: A global coordinate system defined by latitude, longitude, and altitude above mean sea level.
 
 ## Code Analysis
 
 ### Connection and Setup
+
+<Tabs groupId="language">
+<TabItem value="js" label="JavaScript" default>
 
 ```javascript
 // Establish ROS Bridge connection using our wrapper
@@ -168,9 +178,21 @@ let rawTelemetry = {
 };
 ```
 
+</TabItem>
+<TabItem value="python" label="Python">
+
+```python
+# Coming soon...
+```
+
+</TabItem>
+</Tabs>
+
 The tutorial sets up both raw data storage and connection to the ROS Bridge.
 
 ### Raw Topic Subscriptions
+<Tabs groupId="language">
+<TabItem value="js" label="JavaScript" default>
 
 ```javascript
 // Subscribe to vehicle state (/mavros/state)
@@ -184,9 +206,22 @@ rawSubscriptions.push(
 );
 ```
 
+</TabItem>
+<TabItem value="python" label="Python">
+
+```python
+# Coming soon...
+```
+
+</TabItem>
+</Tabs>
+
 Each telemetry source is subscribed to individually, giving direct access to raw MAVROS messages.
 
 ### Managed State Model
+
+<Tabs groupId="language">
+<TabItem value="js" label="JavaScript" default>
 
 ```javascript
 // Initialize managed state model for comparison
@@ -201,17 +236,72 @@ droneState.onUpdate((state) => {
 });
 ```
 
+</TabItem>
+<TabItem value="python" label="Python">
+
+```python
+# Coming soon...
+```
+
+</TabItem>
+</Tabs>
+
 The `DroneStateModel` handles all subscriptions internally and provides aggregated state updates.
+the `state` variable is a `DroneState` variable. It contains the vehicle state, global position, local position and more
+
+<Tabs groupId="language">
+<TabItem value="js" label="JavaScript" default>
+
+```javascript
+export type DroneState = {
+  local_position_ned?: {
+    time_boot_ms: number;
+    x: number; y: number; z: number;
+    vx: number; vy: number; vz: number;
+  };
+
+  /** Computed Yaw (rad)*/
+  yaw?: number;
+
+  global_position_int?: {
+    time_boot_ms: number;
+    lat: number; lon: number; alt: number;
+    relative_alt: number;
+    vx: number; vy: number; vz: number;
+    hdg: number; // deg
+  };
+
+  /** Connection/mode/arming state. */
+  vehicle?: {
+    time_boot_ms: number;
+    connected: boolean;
+    armed: boolean;
+    guided: boolean;
+    manual_input: boolean;
+    mode: string;
+    system_status?: number;
+  };
+
+  /** Landed/VTOL state. */
+  extended?: {
+    time_boot_ms: number;
+    landed_state?: number;
+    vtol_state?: number;
+  };
+
+```
+
+</TabItem>
+<TabItem value="python" label="Python">
+
+```python
+# Coming soon...
+```
+
+</TabItem>
+</Tabs>
+
 
 ### Display Logic
 
-The tutorial displays both raw and managed data side-by-side, updating every second to show real-time telemetry changes.
-
-## Navigation
-
-- **Previous**: [Tutorial 01: Connection](01_connection.md)
-- **Next**: [Tutorial 03: Arm/Disarm](03_arm.md)
-
----
-
-*This comprehensive telemetry monitoring is essential for building robust drone applications that require awareness of position, status, and environmental conditions.*
+The example displays both raw and managed data side-by-side, updating every second to show real-time telemetry changes. We usage the same mechanism to draw a map for mission control.

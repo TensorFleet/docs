@@ -15,24 +15,24 @@ This section contains step-by-step tutorials for learning drone programming with
 
 | Tutorial | Topic | Prerequisites |
 |----------|-------|---------------|
-| [00: Preparation](00_preparation.md) | Setup & Simulation | None |
-| [01: Connection](01_connection.md) | ROS Bridge Connection & State Monitoring | Preparation |
-| [02: Telemetry](02_telemetry.md) | Comprehensive Telemetry Collection | Connection |
+| [Preparation](00_preparation.md) | Setup & Simulation | None |
+| [Connection](01_connection.md) | ROS Bridge Connection & State Monitoring | Preparation |
+| [Telemetry](02_telemetry.md) | Comprehensive Telemetry Collection | Connection |
 
 ### Intermediate
 
 | Tutorial | Topic | Prerequisites |
 |----------|-------|---------------|
-| [03: Arm/Disarm](03_arm.md) | Arm and Disarm the Drone | Telemetry |
-| [04: Takeoff & Land](04_takeoff_land.md) | Complete Flight Cycle | Arm/Disarm |
-| [05: OFFBOARD Hover](05_offboard_hover.md) | Enter OFFBOARD Mode and Hover | Takeoff/Land |
+| [Arm/Disarm](03_arm.md) | Arm and Disarm the Drone | Telemetry |
+| [Takeoff & Land](04_takeoff_land.md) | Complete Flight Cycle | Arm/Disarm |
+| [OFFBOARD Hover](05_offboard_hover.md) | Enter OFFBOARD Mode and Hover | Takeoff/Land |
 
 ### Advanced
 
 | Tutorial | Topic | Prerequisites |
 |----------|-------|---------------|
-| [06: Move Forward](06_move_forward.md) | Velocity-Based Movement Control | OFFBOARD Hover |
-| [07: Go to Waypoint](07_goto_waypoint.md) | Position-Based Navigation | Move Forward |
+| [Move Forward](06_move_forward.md) | Velocity-Based Movement Control | OFFBOARD Hover |
+| [Go to Waypoint](07_goto_waypoint.md) | Position-Based Navigation | Move Forward |
 
 ## Learning Path
 

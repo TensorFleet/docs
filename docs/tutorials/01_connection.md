@@ -4,6 +4,9 @@ title: "Tutorial 01: Connection & State Monitoring"
 sidebar_label: "01: Connection & State Monitoring"
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Tutorial 01: Connection & State Monitoring
 
 ## Overview
@@ -12,17 +15,16 @@ This tutorial demonstrates fundamental concepts for connecting to a drone via RO
 
 ## Learning Objectives
 
-- Establish a WebSocket connection to ROS Bridge using ROSLibBridgeWrapper
+- Establish a WebSocket connection to ROS Bridge using `ROSLibBridgeWrapper`
 - Subscribe directly to MAVROS ROS topics for low-level state monitoring
 - Utilize DroneStateModel for aggregated, managed drone state handling
 - Compare raw ROS processing vs. managed state utilities
-- Monitor key drone parameters: connection status, arming state, flight mode, and guided mode
 
 ## Key Concepts
 
+- **ROS**: A robotics communication framework. Data is published on specific topics. And is received by subscribing to the topics. Allows nodes and sensors to communicate with each other. 
 - **ROS Bridge**: Enables remote WebSocket-based communication with ROS systems
-- **MAVROS**: MAVLink extendable communication library for ROS drone integration
-- **State Aggregation**: Combining multiple ROS topics into a unified state representation
+- **MAVROS**: Mavlink is a very common protocol used to communicate with robotics vehicle controllers. mavlink is built on top of UDP. MAVROS is a library that exposes mavlink to ROS
 
 ## Prerequisites
 
@@ -31,25 +33,40 @@ This tutorial demonstrates fundamental concepts for connecting to a drone via RO
 
 ## Running the Tutorial
 
-First we will go through the basics of connecting to the VM through javascript.
 There are many ways to connect to a drone. The most basic ways are with a ROS Bridge or directly via ROS.
+First we will go through the basics of connecting to the VM remotely via ROS bridge.
+ROS bridge will use an authenticated websocket connection to connect to the ROS topics of the virtual machine
 
-For the start we will use ROS Bridge for basic operations. The advantage of ROS Bridge is that it's suitable for websocket connections which are easier to establish remotely.
-We already have utilities that connect you to the drone's environment using an authenticated proxy and the "roslib" javascript library.
+We already have utilities that connect you to the drone's environment using an authenticated proxy and a ROS bridge library.
 
 Here we have an example of how to connect to a drone and conduct basic telemetry of the states (armed, flight mode, etc.)
 
-To run the 01_connect tutorial, use the following bun command:
+To run the 01_connect tutorial example script, use the following command:
+
+<Tabs groupId="language">
+<TabItem value="js" label="JavaScript" default>
 
 ```bash
 bun run src/tutorials/01_connect.js
 ```
+
+</TabItem>
+<TabItem value="python" label="Python">
+
+```bash
+# Coming soon...
+```
+
+</TabItem>
+</Tabs>
 
 This will start the tutorial script, which connects to the drone via MAVROS and begins monitoring state changes.
 
 ## Expected Output Example
 
 When running the tutorial, you should see output similar to the following (this is the result of a successful connection and state monitoring and only prints again when changes occur):
+
+<div style={{maxHeight: '400px', overflowY: 'auto'}}>
 
 ```
 [INFO] Listening to drone state...
@@ -239,75 +256,77 @@ status:
 }
 ```
 
+</div>
+
 ## How It Works
 
-The tutorial demonstrates two approaches to accessing drone state:
-
-1. **Direct MAVROS Usage**: You can subscribe directly to ROS topics using the MAVROS library. This gives you raw access to individual sensor and state messages, allowing for fine-grained control over what data you receive and how you process it.
-
-2. **Managed State Utility**: The `DroneStateModel` provides an automatically managed state utility that handles subscriptions to multiple ROS topics internally. It aggregates and processes the data into a structured state object, making it easier to work with drone state without manually managing each subscription.
-
-## Update Detection
-
-Updates are detected through ROS topic subscriptions:
-
-- For the raw approach, each topic subscription triggers a callback whenever a new message is published on that topic.
-- For the managed approach, the `DroneStateModel` subscribes to all relevant topics and emits updates when the aggregated state changes, reducing the need for individual topic handlers.
-
-This allows real-time monitoring of the drone's connection status, arming state, flight mode, and other critical parameters.
-
-## Code Analysis
-
-### Connection Setup
-
+First we connect to the ROS bridge using our utility class
+<Tabs groupId="language">
+<TabItem value="js" label="JavaScript" default>
 ```javascript
-// Create ROS bridge using the wrapper
 const bridge = new ROSLibBridgeWrapper();
-await bridge.waitForConnection();
+```
+</TabItem>
+<TabItem value="python" label="Python">
+
+```python
+# Coming soon
 ```
 
-The `ROSLibBridgeWrapper` handles the complex connection setup including authentication and proxy configuration.
+</TabItem>
+</Tabs>
 
-### Raw State Tracking
-
+Then we can listen to ROS topics by calling the `.subscribe` function on the object as shown below
+<Tabs groupId="language">
+<TabItem value="js" label="JavaScript" default>
 ```javascript
-// Subscribe to state topic via wrapper (educational: raw ROS processing)
 const unsubscribeRaw = bridge.subscribe(
-    { topic: "/mavros/state", type: "mavros_msgs/State" },
-    (msg) => {
-        // Process raw MAVROS message
-        const currentConnected = msg.connected;
-        const currentArmed = msg.armed;
-        // ... handle state changes
-    }
-);
+  { topic: "/mavros/state", type: "mavros_msgs/State" },
+  (msg) => { /*Your code here */ }
+```
+</TabItem>
+<TabItem value="python" label="Python">
+
+```python
+# Coming soon
 ```
 
-Direct topic subscription gives you complete control over message processing.
+</TabItem>
+</Tabs>
 
-### Managed State Tracking
+However this is cumbersome and requires a lot of finetuning and testing.
+We already have a utility class that does all the common subscriptions and provides us with a higher level usage and update tracking.
+Here is how to use this utility
 
+<Tabs groupId="language">
+<TabItem value="js" label="JavaScript" default>
 ```javascript
-// Create drone state model for comparison (shows utility)
 const droneState = new DroneStateModel();
+// Connect to the bridge.
 droneState.connect(bridge);
 
+// Track status update of the drone (slight position changes will not trigger this)
 droneState.onStatusUpdate((state) => {
     console.log("=== MANAGED DRONE STATE MODEL UPDATE ===");
     if (state.vehicle) {
         console.log("vehicle :\n", state.vehicle);
     }
-    // ... display aggregated state
+
+    if (state.status) {
+        console.log("status: \n", state.status);
+    }
 });
 ```
+</TabItem>
+<TabItem value="python" label="Python">
 
-The `DroneStateModel` automatically manages subscriptions and provides structured state data.
+```python
+# Coming soon
+```
 
-## Navigation
+</TabItem>
+</Tabs>
 
-- **Previous**: [Tutorial 00: Preparation](00_preparation.md)
-- **Next**: [Tutorial 02: Telemetry](02_telemetry.md)
+The `DroneStateModel` automatically manages subscriptions and provides structured state data. So you won't have to look for topic names and handle decoding them and tracking their updates.
 
----
-
-*Tip: Use the Map panel to trigger state changes (arming, mode changes) while the tutorial runs to see live updates.*
+Now that we know how to connect to the drone and read it's sensor data we can go over some better examples on how to use this structured sensor data.
