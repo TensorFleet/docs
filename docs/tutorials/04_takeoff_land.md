@@ -4,26 +4,23 @@ title: "Tutorial 04: Takeoff and Land"
 sidebar_label: "04: Takeoff & Land"
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Tutorial 04: Takeoff and Land
 
 ## Overview
 
 This tutorial demonstrates fundamental drone flight operations using MAVROS commands. It covers the complete flight cycle: arming, takeoff to a target altitude, hovering, and landing with automatic disarm detection.
+A similar example is also available in the [Offboard hover](05_offbord_hover.md)) example Where we do the same thing but in the manual offbord flight mode.
 
 ## Learning Objectives
 
-- Send MAV_CMD_NAV_TAKEOFF command via MAVROS
-- Set GUIDED mode before takeoff (required)
+- Send takeoff command command via MAVROS
 - Monitor altitude during takeoff sequence
-- Execute landing sequence with AUTO.LAND mode
-- Detect automatic disarm after landing
-
-## Key Concepts
-
-- **MAV Commands**: MAVLink protocol commands for drone control
-- **GUIDED Mode**: Flight mode required for autonomous takeoff
-- **Altitude Monitoring**: Tracking relative altitude during flight
-- **Auto-Disarm**: Automatic motor disarm after landing detection
+- Execute landing sequence manually.
+- Detect automatic disarm after landing.
+- Use our automated controller to handle takeoff/land automatically.
 
 ## Prerequisites
 
@@ -37,14 +34,28 @@ After mastering arming/disarming, this tutorial introduces the complete flight c
 
 To run the takeoff and land tutorial:
 
+<Tabs groupId="language">
+<TabItem value="js" label="JavaScript" default>
+
 ```bash
 bun run src/tutorials/04_takeoff_land.js
 ```
+
+</TabItem>
+<TabItem value="python" label="Python">
+
+```bash
+# Coming soon...
+```
+
+</TabItem>
+</Tabs>
 
 ## Expected Output Example
 
 When running the tutorial, you should see output similar to:
 
+<div style={{maxHeight: '400px', overflowY: 'auto'}}>
 ```
 [INFO] Connected to ROS Bridge
 [INFO] Target altitude: 3m
@@ -84,6 +95,8 @@ When running the tutorial, you should see output similar to:
 [SUCCESS] Drone has landed and disarmed!
 [EXIT] Closing connection...
 ```
+</div>
+
 
 ## How It Works
 
@@ -96,73 +109,99 @@ The tutorial demonstrates a complete autonomous flight cycle:
 5. **Landing**: Send land command and monitor descent
 6. **Disarm**: Wait for automatic disarm after landing
 
-## Code Analysis
+### MAVLink commands
+Mavlink has generic endpoints to send commands to our drone. with optional or mandetory param fields. We usually use [COMMAND_LONG](https://mavlink.io/en/messages/common.html#COMMAND_LONG) to send various commands including the [takeoff command](https://mavlink.io/en/messages/common.html#MAV_CMD_NAV_TAKEOFF). As it wouldn't be very helpful to try to compose these commands manually every time we provide the utility `DroneController.takeoff(altitude)` function to compose and send it.
 
-### Setup and Auto-Arm
+For landing we can also use the [land command](https://mavlink.io/en/messages/common.html#MAV_CMD_NAV_LAND) or just use the `/mavros/cmd/land` service call.
+
+## Manual takeoff
+
+For the manual takeoff, first we ensure that the drone is armed. After that we call the `takeoff` function which sends the takeoff command. After that we have to wait for the drone to be armed and in the `AUTO.LOITER`. However this is bug prone. so instead we check whether the drone is taking off, landing or in a landed state. If all of these three conditions are false whil the drone is armed `droneState.isArmed()` returns `true`.
+
+When we know we're done taking off we can use the `/mavros/cmd/land` service call to land. This service call is accessible through `DroneController.land()`
+
+<Tabs groupId="language">
+<TabItem value="js" label="JavaScript" default>
 
 ```javascript
-const ros = await connectToDrone(rosbridgeUrl);
-const { telemetry } = await waitForTelemetry(ros);
+// First we arm the drone.
 
-// Arm if not already armed
-if (!telemetry.state.armed) {
+// while state.vehicle?.armed is false
+while(!await droneState.isArmed()) {
     console.log("[INFO] Drone is not armed. Arming...\n");
-    await armDrone(ros, telemetry);
-} else {
-    console.log("[INFO] Drone already armed");
+
+    // Arm the drone using DroneController
+    
+    await droneController.arm();
+    console.log("Waiting for arm confirmation...");
+
+    // Use low-latency selective change listener for immediate notification
+    await sleep(1500);
 }
+
+console.log("[INFO] Manual drone arm check finished\n");
+
+// Takeoff
+console.log("[INFO] Initiating takeoff...");
+await droneController.takeoff(TARGET_ALTITUDE);
+
+console.log("[INFO] Takeoff command sent, waiting for altitude...");
+
+// This is a combined check. It checks if the drone is armed and is neither landed, landing or taking off.
+// Why is this needed? "AUTO.LOITER" flight mode is possible while being on ground.
+// We also have a delayed state. So when you send the takeoff request, there is no guarantee that the state we have will reflect that.
+while(!await droneState.isAirborne()) {
+    console.log("[INFO] waiting for takeoff to finish...");
+    await sleep(1500);
+}
+
+currentState = await droneState.getState();
+
+console.log(`[INFO] Takeoff sequence finished. armed=${currentState.vehicle.armed}, mode=${currentState.vehicle.mode}, landed=${currentState.extended?.landed_state}\n`);
+
+const relAlt = currentState.altitude?.relative || 0;
+
+console.log("[INFO] Altitude :", relAlt);
+
+console.log("\n[SUCCESS] Takeoff complete! Drone is hovering at altitude.");
 ```
 
-The script automatically handles arming if the drone isn't already armed.
+</TabItem>
+<TabItem value="python" label="Python">
 
-### Takeoff Sequence
+```bash
+# Coming soon...
+```
+
+</TabItem>
+</Tabs>
+
+## Automaic takeoff
+Using our automatic state manager by passing an `"airborne"` mode to `DroneController.requestAutoState` the drone will automatically arm and takeoff to the target altitude. Then it will hold it's position.
+After that we can use landed states available in [Tutorial 03: Arm/Disarm](03_arm.md) to land the drone. `DroneController.requestAutoState` is async so we can evenuse `await` to make sure the operation is fully completed and we aren't in the process of taking off or landing before we execute later stages.
+
+<Tabs groupId="language">
+<TabItem value="js" label="JavaScript" default>
 
 ```javascript
-const TARGET_ALTITUDE = 3.0; // meters
+// Takeoff
+await droneController.requestAutoState({ kind: "airborne", altMeters: TARGET_ALTITUDE });
 
-await takeoffToAlt(ros, telemetry, TARGET_ALTITUDE);
+await sleep(5000);
+
+// Land
+await droneController.requestAutoState({ kind: "landed", armed: false });
 ```
 
-The `takeoffToAlt` utility:
-1. Sets GUIDED mode (required for autonomous takeoff)
-2. Sends MAV_CMD_NAV_TAKEOFF command
-3. Monitors altitude until target is reached
-4. Transitions to AUTO.LOITER for stable hover
+</TabItem>
+<TabItem value="python" label="Python">
 
-### Landing Sequence
-
-```javascript
-await landDrone(ros, telemetry);
+```bash
+# Coming soon...
 ```
 
-The `landDrone` utility:
-1. Sends MAV_CMD_NAV_LAND command
-2. Monitors altitude during descent
-3. Waits for automatic disarm confirmation
-
-## Flight Modes During Tutorial
-
-| Phase | Mode | Description |
-|-------|------|-------------|
-| Pre-flight | STABILIZE | Default ground mode |
-| Takeoff | GUIDED | Autonomous takeoff mode |
-| Hover | AUTO.LOITER | Position hold after takeoff |
-| Landing | AUTO.LAND | Autonomous landing mode |
-| Post-landing | STABILIZE | Auto-disarm triggers |
-
-## Safety Considerations
-
-- **Auto-Arm**: The script arms automatically - ensure area is clear
-- **Target Altitude**: Default is 3m - adjust `TARGET_ALTITUDE` for your environment
-- **Landing Zone**: Drone lands at current position - ensure clear landing area
-- **Auto-Disarm**: Motors automatically disarm after landing detection
-
-## Common Issues
-
-- **Takeoff Fails**: Check GPS lock and pre-arm checks
-- **Altitude Not Reached**: Verify telemetry is updating correctly
-- **Landing Timeout**: May occur if ground detection is slow
-- **No Auto-Disarm**: Flight controller may require manual disarm in some modes
+</TabItem>
+</Tabs>
 
 ## Next Steps
 
@@ -170,12 +209,3 @@ After mastering takeoff and landing, you're ready for:
 - OFFBOARD mode and velocity control
 - Waypoint navigation
 - Mission planning
-
-## Navigation
-
-- **Previous**: [Tutorial 03: Arm/Disarm](03_arm.md)
-- **Next**: [Tutorial 05: OFFBOARD Hover](05_offboard_hover.md)
-
----
-
-*The takeoff and land sequence is fundamental to all autonomous drone operations. Master this before attempting more complex flight maneuvers.*

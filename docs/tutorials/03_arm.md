@@ -11,7 +11,7 @@ import TabItem from '@theme/TabItem';
 
 ## Overview
 
-This tutorial demonstrates fundamental drone safety and control operations using MAVROS services. It showcases the use of our ROSLibBridgeWrapper and DroneController from tensorfleet-util to safely arm and disarm the drone, with proper state monitoring and error handling.
+This tutorial demonstrates the basics of arming and disarming a drone while taking droen controller safety systems into consideration. These will be the first commands we actually send to a drone to power up it's motors.
 
 ## Learning Objectives
 
@@ -27,7 +27,7 @@ This tutorial demonstrates fundamental drone safety and control operations using
 - **Arming State**: When armed, a drone's motors are on. When disarmed the motors are off and you cannot move the drone.
 - **Service Calls**: Synchronous communication pattern that are used to execute code in other ROS nodes.
 - **Safety Mechanisms**: Built-in protections against unsafe operations. For example shutting down the drone mid-air.
-- **Automatic Transitions**: How requesting a takeoff can modify the vehicle's flight mode.
+- **Automatic Transitions**: How requesting a takeoff can modify the vehicle's flight mode. This is disabled at startup. You can enable it by passing a valid `TargetAutoState` to. `DroneController.requestAutoState`. Passing a null value disables it.
 - **DroneController**: Our automatic utility that reads `DroneStateModel` and forwards ROS service calls based on our desired results.
 - **ROS param sets**: Each ROS node can have specific service calls to set configuration parameters on it. we use this to configure heartbeat signal frequency and type on the mavros node.
 - **initializeDroneControl**: This is our connection utility imported from `src/lib/drone_utils.js`. This helps us avoid some of the intialization boilerplate code we had in the previous examples.
