@@ -304,4 +304,4 @@ export type DroneState = {
 
 ### Display Logic
 
-The example displays both raw and managed data side-by-side, updating every second to show real-time telemetry changes. We usage the same mechanism to draw a map for mission control.
+The example displays both raw and managed data side-by-side, updating every second to show real-time telemetry changes. We use the same mechanism to draw a map for mission control.

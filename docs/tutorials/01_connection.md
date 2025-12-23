@@ -282,7 +282,7 @@ Then we can listen to ROS topics by calling the `.subscribe` function on the obj
 ```javascript
 const unsubscribeRaw = bridge.subscribe(
   { topic: "/mavros/state", type: "mavros_msgs/State" },
-  (msg) => { /*Your code here */ }
+  (msg) => { /*Your code here */ });
 ```
 </TabItem>
 <TabItem value="python" label="Python">
