@@ -30,6 +30,7 @@ This tutorial demonstrates fundamental drone safety and control operations using
 - **Automatic Transitions**: How requesting a takeoff can modify the vehicle's flight mode.
 - **DroneController**: Our automatic utility that reads `DroneStateModel` and forwards ROS service calls based on our desired results.
 - **ROS param sets**: Each ROS node can have specific service calls to set configuration parameters on it. we use this to configure heartbeat signal frequency and type on the mavros node.
+- **initializeDroneControl**: This is our connection utility imported from `src/lib/drone_utils.js`. This helps us avoid some of the intialization boilerplate code we had in the previous examples.
 
 ## Prerequisites
 
@@ -146,6 +147,49 @@ async disarm(): Promise<void> {
 
 **Automatic Arming**: You set your requested state. The `DroneController` internals will take care of any ongoing issues to arm or disarm the drone
 
+## Manual arm/disarm
+In here we can see that we call the `.arm()` function if needed. And we keep monitoring the drone state till we observe an armed state
+
+<Tabs groupId="language">
+<TabItem value="js" label="JavaScript" default>
+
+```javascript
+{
+    const st = await droneState.getState();
+    console.log(`[STEP 1] Current state before arming: armed=${st.vehicle?.armed}, mode=${st.vehicle?.mode}`);
+    if (!st.vehicle?.armed) {
+        console.log("[STEP 1] Arming drone...");
+        await droneController.arm();
+        console.log("[STEP 1] Arm command sent successfully");
+    } else {
+        console.log("[STEP 1] Drone already armed - skipping arm command");
+    }
+}
+
+// Step 2: Wait to observe the armed state
+console.log("[STEP 2] Waiting 6 seconds to observe armed state...");
+await sleep(6000);
+let armedState = await droneState.getState();
+
+while(!armedState.vehicle?.armed) {
+    console.log("[STEP 2] Retrying. drone not armed...");
+    await droneController.arm();
+    await sleep(1000);
+    armedState = await droneState.getState();
+}
+```
+
+</TabItem>
+<TabItem value="python" label="Python">
+
+```bash
+# Coming soon...
+```
+</TabItem>
+</Tabs>
+
+## Automatic arm/disarm
+
 <Tabs groupId="language">
 <TabItem value="js" label="JavaScript" default>
 
@@ -195,65 +239,8 @@ Flight controllers include multiple safety features:
 - **Pre-Arm Checks**: Validates GPS, battery, sensors before arming. Even ground control connection will be validated here. We use mavros so we already configure mavros to act as the ground control for our drone. Had we not done that then the arm would fail. We do this by using ros param sets 
     - setting `/mavros/sys.heartbeat_mav_type` to `GCS`
     - setting `/mavros/sys.heartbeat_rate` to `2.0`
-    
-- **Emergency Protocols**: Automatic failsafe responses
+    Keep in mind that our map panel and anything utility that we have that interacts with the mavros node will do this just to ensure that things are setup properly. As long as the mavros node is up these configurations will remain.
 
-## Code Walkthrough
-
-### Setup Phase
-
-```javascript
-// Connect to ROS Bridge
-const bridge = new ROSLibBridgeWrapper();
-await bridge.waitForConnection();
-
-// Monitor drone state
-const droneState = new DroneStateModel();
-droneState.connect(bridge);
-
-// Control the drone
-const droneController = new DroneController(droneState, bridge);
-```
-
-### Arming Operation
-
-```javascript
-// Check current state
-const state = droneState.getState();
-if (!state.vehicle?.armed) {
-    // Arm the drone
-    await droneController.arm();
-
-    // Wait for confirmation using low-latency listener
-    await new Promise((resolve, reject) => {
-        const timeout = setTimeout(() => reject(new Error("Timeout")), 5000);
-
-        // Listen for vehicle state changes (armed, mode, etc.)
-        const unsubscribe = droneState.onSectionChange('vehicle', (oldVal, newVal) => {
-            if (newVal.armed && !oldVal.armed) {
-                clearTimeout(timeout);
-                unsubscribe();
-                resolve();
-            }
-        });
-    });
-}
-```
-
-### Low-Latency State Monitoring
-
-Instead of polling every 100ms, this tutorial uses the new `onSectionChange()` API:
-
-- **`onSectionChange(section, listener)`**: Registers a listener for changes in a specific state section
-- **Immediate notifications**: Fires when ROS messages update state, not on a timer
-- **Selective listening**: Only listens to relevant state sections (excludes time updates)
-- **Automatic cleanup**: Listeners are unsubscribed when no longer needed
-
-The code waits for state confirmation because:
-- Commands are sent asynchronously
-- Network delays may occur 
-- Verifies the flight controller accepted the command
-- Provides immediate feedback when we receive new states from mavros.
 
 ## Next Steps
 
