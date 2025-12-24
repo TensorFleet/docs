@@ -4,26 +4,25 @@ title: "Tutorial 06: Move Forward"
 sidebar_label: "06: Move Forward"
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Tutorial 06: Move Forward
 
 ## Overview
 
-This tutorial demonstrates velocity-based movement control in OFFBOARD mode. You'll learn how to command the drone to move forward using timed velocity commands - a fundamental building block for autonomous navigation.
+This tutorial demonstrates the use of the velocity_local setpoint in OFFBOARD mode to move the drone in a single direction. This is very similar to [Offboard hover](05_offboard_hover.md) but the velocity will be non zero.
 
 ## Learning Objectives
 
-- Command forward velocity in OFFBOARD mode
-- Understand time-based open-loop control
-- Calculate expected travel distance from velocity and time
+- Use velocity setpoints in OFFBOARD mode for moving in a single direction.
+- Use position setpoints in OFFBOARD mode for moving to a specific location.
 - Stop movement by returning to zero velocity
-- Understand the limitations of open-loop control
 
 ## Key Concepts
 
-- **Velocity Control**: Commanding movement via velocity vectors
-- **Open-Loop Control**: Time-based movement without position feedback
-- **Body vs World Frame**: Velocity reference frames
-- **Movement Phases**: Accelerate, cruise, decelerate, stop
+- **velocity_local**: Commanding movement via velocity vectors in OFFBOARD mode
+- **position_local**: Commanding movement to a local position in OFFBOARD mode
 
 ## Prerequisites
 
@@ -35,12 +34,24 @@ This tutorial demonstrates velocity-based movement control in OFFBOARD mode. You
 
 This tutorial moves the drone forward for 5 seconds at 1 m/s, then lands.
 
+<Tabs groupId="language">
+<TabItem value="js" label="JavaScript" default>
 ```bash
 bun run src/tutorials/06_move_forward.js
 ```
+</TabItem>
+<TabItem value="python" label="Python">
+
+```bash
+# Coming soon...
+```
+
+</TabItem>
+</Tabs>
 
 ## Expected Output Example
 
+<div style={{maxHeight: '400px', overflowY: 'auto'}}>
 ```
 [INFO] Connected to ROS Bridge
 
@@ -67,170 +78,142 @@ bun run src/tutorials/06_move_forward.js
 [SUCCESS] Mission complete!
 [EXIT] Closing connection...
 ```
+</div>
 
 ## How It Works
 
-The tutorial uses simple velocity commands to move forward:
+### Coordinate system
+In the `local` frame (North-East-Down) we have:
+- **+X**: North
+- **+Y**: East
+- **+Z**: Down
 
+So if you wanted to move up you would set the z element of the velocity to a negative value. Keep in mind that in the `velocity_local` coordinates, it doesn't matter which direction the dorne is facing. If it needs to rotate the autopilot has to take care of that.
+
+### Manual sequence (With velocity control method)
+
+We can have the drone move in a single direction by setting it's velocity. In this example we will be setting it to a constant value for a couple of seconds.
+Keep in mind that it's also possible to use position_local for setpoint publication. But we will be using velocity for demonstration.
+
+Example of movement stages :
 ```
 Time:     0s -----> 5s -----> 6s
 Velocity: 1 m/s    1 m/s    0 m/s
 Action:   MOVE     MOVE     STOP
 ```
 
-## Code Analysis
-
-### Configuration
+<Tabs groupId="language">
+<TabItem value="js" label="JavaScript" default>
 
 ```javascript
-const TARGET_ALTITUDE = 3.0;   // meters
-const FORWARD_VELOCITY = 1.0;  // m/s
-const MOVE_DURATION = 5.0;     // seconds
-const SETPOINT_HZ = 20;
+// Takeoff
+await manualArmAndTakeoff(droneController, droneState, TARGET_ALTITUDE);
+
+// Velocity setpoint
+const moveStart = Date.now();
+let setpointInterval = setInterval(async () => {
+    // Continuously send OFFBOARD mode command
+    await droneController.setMode("OFFBOARD", 0, false); // Silent mode setting
+
+    // Broadcast forward velocity target
+    droneController.publishOffboardTarget({
+        kind: "velocity_local",
+        vx: FORWARD_VELOCITY,
+        vy: 0.0,
+        vz: 0.0
+});
+}, 50); // Broadcast at 20Hz as per PX4 requirements
+
+// Wait for OFFBOARD mode to be active
+while (!(await droneState.isOffboard())) {
+    console.log("[STEP 2] Waiting for OFFBOARD mode to activate...");
+    await sleep(500);
+}
+
+
+// Step 3: Maintain forward movement for specified duration
+
+
+await sleep(MOVE_DURATION * 1000);
+
+
+// Change the velocity setpoint to start hovering in OFFBOARD mode
+// Zero velocity in offboard mode is only useful if we want to change the velocity again, otherwise it's best to switch to a hold position like "AUTO.LOITER"
+clearInterval(setpointInterval);
+setpointInterval = setInterval(async () => {
+    // Continuously send OFFBOARD mode command
+    await droneController.setMode("OFFBOARD", 0, false); // Silent mode setting
+
+    // Broadcast zero velocity target to stop
+    droneController.publishOffboardTarget({
+        kind: "velocity_local",
+        vx: 0.0,
+        vy: 0.0,
+        vz: 0.0
+    });
+}, 50);
 ```
 
-### Creating Forward Velocity Message
+</TabItem>
+<TabItem value="python" label="Python">
+
+```bash
+# Coming soon...
+```
+
+</TabItem>
+</Tabs>
+
+### Automated sequence
+
+For the automated sequence we will be doing something similar to the manual sequence but we will use the target states and await (if we want to wait)
+
+<Tabs groupId="language">
+<TabItem value="js" label="JavaScript" default>
 
 ```javascript
-const forwardVel = new ROSLIB.Message({
-    header: { frame_id: "map" },
-    twist: {
-        linear: { x: FORWARD_VELOCITY, y: 0.0, z: 0.0 },
-        angular: { x: 0.0, y: 0.0, z: 0.0 }
-    }
+// Arm and takeoff and hold altitude.
+await droneController.requestAutoState({
+    kind: "airborne",
+    altMeters: TARGET_ALTITUDE
+});
+
+// Set velocity. don't wait.
+droneController.requestAutoState({
+kind: "offboard",
+target: {
+    kind: "velocity_local",
+    vx: -FORWARD_VELOCITY,
+    vy: 0.0,
+    vz: 0.0
+}
+});
+
+// Wait a while
+await sleep(MOVE_DURATION*1000);
+
+// Switch to hold position
+await droneController.requestAutoState({
+kind: "airborne",
+altMeters: TARGET_ALTITUDE
+});
+
+// Wait
+await sleep(2000);
+
+// Land
+await droneController.requestAutoState({
+kind: "landed",
+armed: false
 });
 ```
 
-The velocity vector:
-- `x: 1.0` - Move forward at 1 m/s
-- `y: 0.0` - No lateral movement
-- `z: 0.0` - Maintain altitude
+</TabItem>
+<TabItem value="python" label="Python">
 
-### Movement Loop
-
-```javascript
-console.log(`[MOVE] Moving forward at ${FORWARD_VELOCITY} m/s for ${MOVE_DURATION}s`);
-console.log(`[MOVE] Expected distance: ~${FORWARD_VELOCITY * MOVE_DURATION} meters`);
-
-const endTime = Date.now() + MOVE_DURATION * 1000;
-const intervalMs = 1000 / SETPOINT_HZ;
-
-while (Date.now() < endTime) {
-    velPub.publish(forwardVel);
-    await sleep(intervalMs);
-}
+```bash
+# Coming soon...
 ```
 
-### Stopping
-
-```javascript
-console.log("[MOVE] Stopping...\n");
-const zeroVel = new ROSLIB.Message({
-    header: { frame_id: "map" },
-    twist: {
-        linear: { x: 0.0, y: 0.0, z: 0.0 },
-        angular: { x: 0.0, y: 0.0, z: 0.0 }
-    }
-});
-
-// Stream zero velocity for 1 second to ensure stop
-for (let i = 0; i < SETPOINT_HZ; i++) {
-    velPub.publish(zeroVel);
-    await sleep(intervalMs);
-}
-```
-
-## Understanding Velocity Control
-
-### Coordinate System (ENU)
-
-In the `map` frame (East-North-Up):
-- **+X**: East (forward in default heading)
-- **+Y**: North (left)
-- **+Z**: Up
-
-### Velocity Components
-
-| Component | Direction | Example |
-|-----------|-----------|---------|
-| `linear.x` | Forward/Backward | `1.0` = forward, `-1.0` = backward |
-| `linear.y` | Left/Right | `1.0` = left, `-1.0` = right |
-| `linear.z` | Up/Down | `1.0` = up, `-1.0` = down |
-| `angular.z` | Yaw rotation | `0.5` = turn left, `-0.5` = turn right |
-
-### Example Velocity Commands
-
-```javascript
-// Move forward
-{ linear: { x: 1.0, y: 0.0, z: 0.0 } }
-
-// Move backward
-{ linear: { x: -1.0, y: 0.0, z: 0.0 } }
-
-// Strafe left
-{ linear: { x: 0.0, y: 1.0, z: 0.0 } }
-
-// Ascend
-{ linear: { x: 0.0, y: 0.0, z: 0.5 } }
-
-// Move forward while turning right
-{ linear: { x: 1.0, y: 0.0, z: 0.0 }, angular: { z: -0.3 } }
-```
-
-## Open-Loop vs Closed-Loop Control
-
-This tutorial uses **open-loop control**:
-- Command velocity for a set time
-- No position feedback
-- Actual distance may vary due to wind, drift, response time
-
-**Limitations:**
-- Cannot guarantee exact position
-- Drift accumulates over time
-- No obstacle awareness
-
-**When to use:**
-- Simple movement tests
-- When approximate positioning is acceptable
-- As building blocks for more complex control
-
-The next tutorial introduces **closed-loop control** with position feedback.
-
-## Experimenting
-
-Try modifying the constants:
-
-```javascript
-// Slower, shorter movement
-const FORWARD_VELOCITY = 0.5;  // m/s
-const MOVE_DURATION = 3.0;     // seconds
-
-// Faster, longer movement
-const FORWARD_VELOCITY = 2.0;  // m/s
-const MOVE_DURATION = 10.0;    // seconds
-```
-
-## Common Issues
-
-| Issue | Cause | Solution |
-|-------|-------|----------|
-| Drone doesn't move | Still in hover mode | Verify OFFBOARD is active |
-| Movement is diagonal | Heading not aligned | Use body frame or align yaw first |
-| Drone overshoots stop | Momentum | Stream zero velocity longer |
-| Altitude changes | Wind/disturbance | Normal - altitude hold maintains approximate height |
-
-## Next Steps
-
-Open-loop velocity control is useful but limited. Next, learn:
-- Position-based waypoint navigation
-- Closed-loop control with feedback
-- Precise positioning using local coordinates
-
-## Navigation
-
-- **Previous**: [Tutorial 05: OFFBOARD Hover](05_offboard_hover.md)
-- **Next**: [Tutorial 07: Go to Waypoint](07_goto_waypoint.md)
-
----
-
-*Velocity control is the foundation of drone movement. Understanding this enables building any autonomous behavior from simple patterns to complex missions.*
+</TabItem>
+</Tabs>

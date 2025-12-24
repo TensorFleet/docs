@@ -4,26 +4,30 @@ title: "Tutorial 07: Go to Waypoint"
 sidebar_label: "07: Go to Waypoint"
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Tutorial 07: Go to Waypoint
 
 ## Overview
 
-This tutorial demonstrates closed-loop position control - navigating to a specific waypoint using position feedback. Unlike open-loop velocity control, this approach continuously adjusts velocity based on the drone's current position, enabling precise navigation.
+This tutorial demonstrates going to a desired position using 
+- Closed-loop `velocity_local` setpoint with positional feedback.
+- `position_local` isntead of `velocity_local` to order the drone to go to a specific position. The flight controller will handle the accelerations. This is useful if you want to go towards a position that's far away so you keep going towards it, or if you want to hold at that position.
+
 
 ## Learning Objectives
 
-- Implement closed-loop position control
 - Calculate velocity vectors toward a target position
 - Use proportional control for smooth approach
 - Detect waypoint arrival within a radius
-- Understand the advantages of feedback control
 
 ## Key Concepts
 
-- **Closed-Loop Control**: Using sensor feedback to adjust commands
+- **Closed-Loop Control**: Using sensor feedback to adjust outputs.
 - **Proportional Control**: Velocity proportional to distance from target
 - **Waypoint Navigation**: Moving to specific coordinates
-- **Arrival Detection**: Determining when target is reached
+- **Arrival Detection**: Determining when target is reached using a basic radius check
 
 ## Prerequisites
 
@@ -35,12 +39,24 @@ This tutorial demonstrates closed-loop position control - navigating to a specif
 
 This tutorial navigates to a waypoint offset from the takeoff position, then lands.
 
+<Tabs groupId="language">
+<TabItem value="js" label="JavaScript" default>
 ```bash
 bun run src/tutorials/07_goto_waypoint.js
 ```
+</TabItem>
+<TabItem value="python" label="Python">
+
+```bash
+# Coming soon...
+```
+
+</TabItem>
+</Tabs>
 
 ## Expected Output Example
 
+<div style={{maxHeight: '400px', overflowY: 'auto'}}>
 ```
 [INFO] Connected to ROS Bridge
 
@@ -78,6 +94,7 @@ bun run src/tutorials/07_goto_waypoint.js
 [SUCCESS] Mission complete!
 [EXIT] Closing connection...
 ```
+</div>
 
 ## How It Works
 
@@ -105,191 +122,116 @@ The control loop continuously:
 └──────────────────────────────────────────────────────────┘
 ```
 
-## Code Analysis
 
-### Configuration
+## Manual sequence, closed-loop control
 
+In here we can see the closed loop running which directs the drone towards a desired point `target`.
+We compute the distance from the target point. and the velocity in the direction of the target with the `Math.min(MAX_VELOCITY, distance * 0.5)` formula.
+During each poll we perform a distance check. If we reach the target point we perform a zero velocity hover instead.
+
+<Tabs groupId="language">
+<TabItem value="js" label="JavaScript" default>
 ```javascript
-const TARGET_ALTITUDE = 3.0;    // meters
-const WAYPOINT_OFFSET_X = 5.0;  // meters forward
-const WAYPOINT_OFFSET_Y = 5.0;  // meters right
-const WAYPOINT_RADIUS = 1.0;    // arrival threshold
-const MAX_VELOCITY = 2.0;       // m/s speed limit
-const SETPOINT_HZ = 20;
-```
+let setpointInterval = setInterval(async () => {
+    // Continuously send OFFBOARD mode command
+    await droneController.setMode("OFFBOARD", 0, false); // Silent mode setting
 
-### Recording Home and Calculating Target
+    if (!arrived) {
+      // Get current position
+      const currentState = await droneState.getState();
+      const pos = currentState.local?.position;
+      if (!pos) {
+        console.log("Pose not defined");
+        return;
+      }
 
-```javascript
-// Record home position after takeoff
-const home = {
-    x: telemetry.pose.pose.position.x,
-    y: telemetry.pose.pose.position.y
-};
+      const dx = target.x - pos.x;
+      const dy = target.y - pos.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
 
-// Calculate target position (offset from home)
-const target = {
-    x: home.x + WAYPOINT_OFFSET_X,
-    y: home.y + WAYPOINT_OFFSET_Y
-};
-
-console.log(`[WAYPOINT] Home: (${home.x.toFixed(2)}, ${home.y.toFixed(2)})`);
-console.log(`[WAYPOINT] Target: (${target.x.toFixed(2)}, ${target.y.toFixed(2)})`);
-```
-
-### Navigation Loop with Proportional Control
-
-```javascript
-let arrived = false;
-
-while (!arrived) {
-    // Get current position
-    const pos = telemetry.pose.pose.position;
-    
-    // Calculate error (distance to target)
-    const dx = target.x - pos.x;
-    const dy = target.y - pos.y;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-
-    console.log(`[NAV] Distance to target: ${distance.toFixed(2)}m`);
-
-    // Check arrival
-    if (distance < WAYPOINT_RADIUS) {
+      // Check if arrived at waypoint
+      if (distance < WAYPOINT_RADIUS) {
         console.log("\n[NAV] Arrived at waypoint!\n");
         arrived = true;
-        break;
+        // Broadcast zero velocity to stop
+        droneController.publishOffboardTarget({
+          kind: "velocity_local",
+          vx: 0.0,
+          vy: 0.0,
+          vz: 0.0
+        });
+        return;
+      }
+
+      // Calculate velocity (proportional control)
+      const speed = Math.min(MAX_VELOCITY, distance * 0.5);
+      const vx = (dx / distance) * speed;
+      const vy = (dy / distance) * speed;
+
+      // Broadcast velocity target
+      droneController.publishOffboardTarget({
+        kind: "velocity_local",
+        vx: vx,
+        vy: vy,
+        vz: 0.0
+      });
+
+      // Log progress occasionally
+      const now = Date.now();
+      if (now - lastLogTime > 2000) {
+        console.log(`[NAV] Distance to target: ${distance.toFixed(2)}m, velocity: (${vx.toFixed(2)}, ${vy.toFixed(2)})`);
+        lastLogTime = now;
+      }
+    } else {
+      // Already arrived, broadcast zero velocity
+      droneController.publishOffboardTarget({
+        kind: "velocity_local",
+        vx: 0.0,
+        vy: 0.0,
+        vz: 0.0
+      });
     }
+  }, 50); // Broadcast at 20Hz as per PX4 requirements
+```
+</TabItem>
+<TabItem value="python" label="Python">
 
-    // Proportional control: velocity proportional to distance
-    // Speed = min(MAX_VELOCITY, distance * 0.5)
-    const speed = Math.min(MAX_VELOCITY, distance * 0.5);
-    
-    // Unit vector toward target, scaled by speed
-    const vx = (dx / distance) * speed;
-    const vy = (dy / distance) * speed;
-
-    // Publish velocity command
-    const vel = new ROSLIB.Message({
-        header: { frame_id: "map" },
-        twist: {
-            linear: { x: vx, y: vy, z: 0.0 },
-            angular: { x: 0.0, y: 0.0, z: 0.0 }
-        }
-    });
-
-    velPub.publish(vel);
-    await sleep(intervalMs);
-}
+```bash
+# Coming soon...
 ```
 
-## Understanding Proportional Control
+</TabItem>
+</Tabs>
 
-### The Control Law
+## Automated sequence using `position_local`
 
-```
-velocity = K_p * error
-```
+We can also use the `position_local` setpoint type to ask the drone's autopilot to go to a specific point. It will handle the acceleration and deacceleration automatically. Keep in mind that our utility `DroneController` isn't doing this but the actual flight controller handles the acceleration.
 
-Where:
-- `velocity` = commanded speed
-- `K_p` = proportional gain (0.5 in this tutorial)
-- `error` = distance to target
+If we pass a `position_local` to `publishOffboardTarget` during OFFBOARD the drone's flight controller will go towards the target point to hover at that point.
+If the point is far enough, we can use it for "go towards" instead. In which case we let the flight controller choose which speed it wants to go with.
 
-### Behavior
+For an easier use we can call `requestAutoState` to handle the continous call of the `publishOffboardTarget`.
 
-| Distance | Calculated Speed | Actual Speed |
-|----------|-----------------|--------------|
-| 10m | 5.0 m/s | 2.0 m/s (capped) |
-| 4m | 2.0 m/s | 2.0 m/s |
-| 2m | 1.0 m/s | 1.0 m/s |
-| 0.5m | 0.25 m/s | 0.25 m/s |
 
-**Benefits:**
-- Fast approach when far away
-- Smooth deceleration near target
-- No overshoot (if tuned correctly)
-
-### Tuning Parameters
-
+<Tabs groupId="language">
+<TabItem value="js" label="JavaScript" default>
 ```javascript
-// Aggressive (fast but may overshoot)
-const speed = Math.min(3.0, distance * 1.0);
+await droneController.requestAutoState({
+    kind: "offboard",
+    target: {
+      kind: "position_local",
+      x: target.x,
+      y: target.y,
+      z: target.z
+    }
+  });
+```
+</TabItem>
+<TabItem value="python" label="Python">
 
-// Conservative (slow but precise)
-const speed = Math.min(1.0, distance * 0.3);
-
-// Default (balanced)
-const speed = Math.min(2.0, distance * 0.5);
+```bash
+# Coming soon...
 ```
 
-## Waypoint Arrival Detection
-
-```javascript
-const WAYPOINT_RADIUS = 1.0; // meters
-
-if (distance < WAYPOINT_RADIUS) {
-    arrived = true;
-}
-```
-
-The arrival radius accounts for:
-- Position sensor noise
-- Control loop latency
-- Acceptable positioning tolerance
-
-**Smaller radius** = More precise but harder to achieve  
-**Larger radius** = Easier to achieve but less precise
-
-## Extending to Multiple Waypoints
-
-```javascript
-const waypoints = [
-    { x: 5, y: 0 },
-    { x: 5, y: 5 },
-    { x: 0, y: 5 },
-    { x: 0, y: 0 }  // Return to start
-];
-
-for (const waypoint of waypoints) {
-    await navigateToWaypoint(waypoint);
-    console.log(`Reached waypoint (${waypoint.x}, ${waypoint.y})`);
-}
-```
-
-## Comparison: Open-Loop vs Closed-Loop
-
-| Aspect | Open-Loop (Tutorial 06) | Closed-Loop (Tutorial 07) |
-|--------|------------------------|---------------------------|
-| Control | Time-based velocity | Position feedback |
-| Precision | Low (drift accumulates) | High (corrects errors) |
-| Complexity | Simple | Moderate |
-| Use Case | Simple movements | Precise navigation |
-| Handles Disturbances | No | Yes |
-
-## Common Issues
-
-| Issue | Cause | Solution |
-|-------|-------|----------|
-| Never arrives | Radius too small | Increase `WAYPOINT_RADIUS` |
-| Overshoots | Gain too high | Reduce proportional gain |
-| Oscillates | Gain too high | Reduce gain, add damping |
-| Slow approach | Max velocity too low | Increase `MAX_VELOCITY` |
-| Position jumps | Telemetry issues | Add position filtering |
-
-## Next Steps
-
-With waypoint navigation mastered, you can build:
-- Multi-waypoint missions
-- Path following algorithms
-- Obstacle avoidance integration
-- Mission planning systems
-
-## Navigation
-
-- **Previous**: [Tutorial 06: Move Forward](06_move_forward.md)
-- **Next**: Explore [Robotics Examples](../robotics/00_overview.md) or build your own missions!
-
----
-
-*Closed-loop control is the foundation of reliable autonomous navigation. The proportional control pattern demonstrated here extends to more sophisticated controllers (PID, MPC) used in production systems.*
-
+</TabItem>
+</Tabs>
